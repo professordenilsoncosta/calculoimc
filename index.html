@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de IMC Interativa</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --success: #4cc9f0;
+            --warning: #f72585;
+            --danger: #e63946;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --magreza: #ffb74d;
+            --normal: #4caf50;
+            --sobrepeso: #ff9800;
+            --obesidade: #f44336;
+            --obesidade-grave: #c62828;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 1000px;
+            overflow: hidden;
+            animation: fadeIn 0.8s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
+            animation: shine 6s infinite linear;
+        }
+        
+        @keyframes shine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        
+        .calculator {
+            flex: 1;
+            padding: 35px;
+            min-width: 320px;
+            background: var(--light);
+        }
+        
+        .input-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 16px;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+            padding-left: 45px;
+        }
+        
+        .input-group input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 43px;
+            color: var(--gray);
+            font-size: 18px;
+        }
+        
+        button {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        button:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .result {
+            flex: 1;
+            padding: 35px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 320px;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .result-image {
+            width: 220px;
+            height: 220px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            font-size: 90px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            transition: all 0.5s ease;
+            position: relative;
+            z-index: 2;
+            overflow: hidden;
+            background-color: #f0f0f0;
+        }
+        
+        .result-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Alterado de cover para contain */
+            transition: transform 0.5s ease;
+        }
+        
+        .result-image.pulse {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .result-value {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: var(--primary);
+            text-align: center;
+        }
+        
+        .result-classification {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-align: center;
+            padding: 8px 20px;
+            border-radius: 50px;
+        }
+        
+        .result-obesity {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease-in-out;
+            position: relative;
+        }
+        
+        .progress-markers {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            position: absolute;
+            top: -25px;
+            font-size: 12px;
+            color: var(--gray);
+        }
+        
+        .progress-marker {
+            width: 2px;
+            height: 10px;
+            background: var(--gray);
+            position: absolute;
+            top: -15px;
+        }
+        
+        .classification-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            font-size: 14px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .classification-table th, 
+        .classification-table td {
+            padding: 12px 15px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .classification-table th {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .classification-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .classification-table tr:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .history {
+            margin-top: 25px;
+            width: 100%;
+        }
+        
+        .history h3 {
+            margin-bottom: 15px;
+            color: var(--dark);
+            text-align: center;
+        }
+        
+        .history-list {
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 10px;
+        }
+        
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .header h1 {
+                font-size: 28px;
+            }
+            
+            .result-value {
+                font-size: 36px;
+            }
+            
+            .result-classification {
+                font-size: 20px;
+            }
+            
+            .result-image {
+                width: 180px;
+                height: 180px;
+            }
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 5px;
+            color: var(--primary);
+            cursor: help;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--dark);
+            color: white;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-weight: normal;
+            font-size: 14px;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .share-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .share-btn {
+            padding: 10px 15px;
+            border-radius: 50px;
+            background: #f0f0f0;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+        }
+        
+        .share-btn:hover {
+            background: #e0e0f0;
+        }
+
+        .clear-history {
+            margin-top: 10px;
+            padding: 8px 15px;
+            background: var(--gray);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .clear-history:hover {
+            background: var(--dark);
+        }
+
+        .image-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+            color: #888;
+            font-size: 14px;
+            text-align: center;
+            padding: 10px;
+            border-radius: 50%;
+        }
+        
+        .image-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Calculadora de IMC Interativa</h1>
+            <p>Descubra seu Índice de Massa Corporal e classificação</p>
+        </div>
+        
+        <div class="content">
+            <div class="calculator">
+                <div class="input-group">
+                    <label for="weight">
+                        Peso (kg)
+                        <span class="tooltip">
+                            <i class="fas fa-question-circle"></i>
+                            <span class="tooltiptext">Informe seu peso em quilogramas. Ex: 68,5 ou 68.5</span>
+                        </span>
+                    </label>
+                    <div class="input-icon">
+                        <i class="fas fa-weight"></i>
+                    </div>
+                    <input type="text" id="weight" placeholder="Ex: 70 ou 70,5" inputmode="decimal">
+                </div>
+                
+                <div class="input-group">
+                    <label for="height">
+                        Altura (m)
+                        <span class="tooltip">
+                            <i class="fas fa-question-circle"></i>
+                            <span class="tooltiptext">Informe sua altura em metros. Ex: 1,75 ou 1.75</span>
+                        </span>
+                    </label>
+                    <div class="input-icon">
+                        <i class="fas fa-ruler-vertical"></i>
+                    </div>
+                    <input type="text" id="height" placeholder="Ex: 1,75 ou 1.75" inputmode="decimal">
+                </div>
+                
+                <button id="calculate-btn">
+                    <i class="fas fa-calculator"></i>
+                    Calcular IMC
+                </button>
+                
+                <div class="progress-bar">
+                    <div class="progress-markers">
+                        <span>Magreza</span>
+                        <span>Normal</span>
+                        <span>Sobrepeso</span>
+                        <span>Obesidade</span>
+                        <span>Obesidade Grave</span>
+                    </div>
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                
+                <table class="classification-table">
+                    <tr>
+                        <th>IMC</th>
+                        <th>Classificação</th>
+                        <th>Obesidade (Grau)</th>
+                    </tr>
+                    <tr>
+                        <td>Menor que 18,5</td>
+                        <td>Magreza</td>
+                        <td>0</td>
+                    </tr>
+                    <tr>
+                        <td>Entre 18,5 e 24,9</td>
+                        <td>Normal</td>
+                        <td>0</td>
+                    </tr>
+                    <tr>
+                        <td>Entre 25,0 e 29,9</td>
+                        <td>Sobrepeso</td>
+                        <td>I</td>
+                    </tr>
+                    <tr>
+                        <td>Entre 30,0 e 39,9</td>
+                        <td>Obesidade</td>
+                        <td>II</td>
+                    </tr>
+                    <tr>
+                        <td>Maior que 40,0</td>
+                        <td>Obesidade Grave</td>
+                        <td>III</td>
+                    </tr>
+                </table>
+                
+                <div class="history">
+                    <h3>Histórico de Cálculos</h3>
+                    <div class="history-list" id="history-list">
+                        <div class="history-item">
+                            <span>Nenhum cálculo ainda</span>
+                        </div>
+                    </div>
+                    <button class="clear-history" id="clear-history">Limpar Histórico</button>
+                </div>
+            </div>
+            
+            <div class="result">
+                <div class="result-image" id="result-image">
+                    <div class="image-container">
+                        <div class="image-placeholder" id="image-placeholder">
+                            Imagem do IMC aparecerá aqui
+                        </div>
+                        <img id="result-img" style="display: none; max-width: 90%; max-height: 90%;" alt="Classificação IMC">
+                    </div>
+                </div>
+                <div class="result-value" id="result-value">0.0</div>
+                <div class="result-classification" id="result-classification">Informe seus dados</div>
+                <div class="result-obesity" id="result-obesity">Grau: -</div>
+                
+                <div class="share-buttons">
+                    <button class="share-btn" id="share-btn">
+                        <i class="fas fa-share-alt"></i>
+                        Compartilhar
+                    </button>
+                    <button class="share-btn" id="save-btn">
+                        <i class="fas fa-download"></i>
+                        Salvar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const calculateBtn = document.getElementById('calculate-btn');
+            const weightInput = document.getElementById('weight');
+            const heightInput = document.getElementById('height');
+            const resultValue = document.getElementById('result-value');
+            const resultClassification = document.getElementById('result-classification');
+            const resultObesity = document.getElementById('result-obesity');
+            const resultImage = document.getElementById('result-image');
+            const resultImg = document.getElementById('result-img');
+            const imagePlaceholder = document.getElementById('image-placeholder');
+            const progressFill = document.getElementById('progress-fill');
+            const historyList = document.getElementById('history-list');
+            const shareBtn = document.getElementById('share-btn');
+            const saveBtn = document.getElementById('save-btn');
+            const clearHistoryBtn = document.getElementById('clear-history');
+            
+            // Carregar histórico do localStorage
+            let history = JSON.parse(localStorage.getItem('imcHistory')) || [];
+            updateHistoryDisplay();
+            
+            // URLs das imagens locais
+            const imageUrls = {
+                initial: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjgwIiBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiNjY2MiIHN0cm9rZS13aWR0aD0iMiIvPjx0ZXh0IHg9IjEwMCIgeT0iMTEwIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM4ODgiPuKdpDwvdGV4dD48L3N2Zz4=',
+                magreza: 'peso-magreza.png',
+                normal: 'peso-normal.png',
+                sobrepeso: 'peso-obesidade1.png',
+                obesidade: 'peso-obesidade2.png',
+                obesidadeGrave: 'peso-obesidade3.png'
+            };
+            
+            calculateBtn.addEventListener('click', calculateIMC);
+            
+            // Adiciona a funcionalidade de pressionar Enter para calcular
+            weightInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') calculateIMC();
+            });
+            
+            heightInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') calculateIMC();
+            });
+            
+            clearHistoryBtn.addEventListener('click', function() {
+                history = [];
+                localStorage.setItem('imcHistory', JSON.stringify(history));
+                updateHistoryDisplay();
+            });
+            
+            function calculateIMC() {
+                // Substituir vírgula por ponto para parseFloat funcionar
+                let weightValue = weightInput.value.replace(',', '.');
+                let heightValue = heightInput.value.replace(',', '.');
+                
+                const weight = parseFloat(weightValue);
+                const height = parseFloat(heightValue);
+                
+                if (isNaN(weight) || isNaN(height) || weight <= 0 || height <= 0) {
+                    alert('Por favor, insira valores válidos para peso e altura.');
+                    return;
+                }
+                
+                const imc = weight / (height * height);
+                const roundedImc = imc.toFixed(1);
+                
+                resultValue.textContent = roundedImc;
+                
+                let classification = '';
+                let obesityDegree = '';
+                let color = '';
+                let imageUrl = '';
+                let progressWidth = 0;
+                
+                if (imc < 18.5) {
+                    classification = 'Magreza';
+                    obesityDegree = '0';
+                    color = 'var(--magreza)';
+                    imageUrl = imageUrls.magreza;
+                    progressWidth = (imc / 40) * 100; // Ajuste para a escala de 0-40
+                } else if (imc >= 18.5 && imc <= 24.9) {
+                    classification = 'Normal';
+                    obesityDegree = '0';
+                    color = 'var(--normal)';
+                    imageUrl = imageUrls.normal;
+                    progressWidth = (imc / 40) * 100;
+                } else if (imc >= 25.0 && imc <= 29.9) {
+                    classification = 'Sobrepeso';
+                    obesityDegree = 'I';
+                    color = 'var(--sobrepeso)';
+                    imageUrl = imageUrls.sobrepeso;
+                    progressWidth = (imc / 40) * 100;
+                } else if (imc >= 30.0 && imc <= 39.9) {
+                    classification = 'Obesidade';
+                    obesityDegree = 'II';
+                    color = 'var(--obesidade)';
+                    imageUrl = imageUrls.obesidade;
+                    progressWidth = (imc / 40) * 100;
+                } else {
+                    classification = 'Obesidade Grave';
+                    obesityDegree = 'III';
+                    color = 'var(--obesidade-grave)';
+                    imageUrl = imageUrls.obesidadeGrave;
+                    progressWidth = 100; // Máximo para IMC >= 40
+                }
+                
+                // Limitar a barra de progresso a 100%
+                progressWidth = Math.min(100, progressWidth);
+                progressFill.style.width = `${progressWidth}%`;
+                progressFill.style.background = color;
+                
+                resultClassification.textContent = classification;
+                resultClassification.style.color = color;
+                resultObesity.textContent = `Grau: ${obesityDegree}`;
+                resultImage.style.backgroundColor = color;
+                
+                // Carrega a imagem
+                resultImg.src = imageUrl;
+                resultImg.alt = classification;
+                resultImg.onload = function() {
+                    // Quando a imagem carrega, escondemos o placeholder e mostramos a imagem
+                    imagePlaceholder.style.display = 'none';
+                    resultImg.style.display = 'block';
+                    
+                    // Ajustar a imagem para caber completamente
+                    const imgRatio = this.naturalWidth / this.naturalHeight;
+                    const containerRatio = 1; // O container é quadrado (1:1)
+                    
+                    if (imgRatio > containerRatio) {
+                        // Imagem mais larga que alta
+                        this.style.width = '90%';
+                        this.style.height = 'auto';
+                    } else {
+                        // Imagem mais alta que larga
+                        this.style.width = 'auto';
+                        this.style.height = '90%';
+                    }
+                };
+                resultImg.onerror = function() {
+                    // Se a imagem não carregar, mostramos o placeholder
+                    imagePlaceholder.style.display = 'flex';
+                    resultImg.style.display = 'none';
+                    imagePlaceholder.textContent = 'Imagem não encontrada: ' + classification;
+                };
+                
+                // Adiciona animação
+                resultImage.classList.add('pulse');
+                setTimeout(() => {
+                    resultImage.classList.remove('pulse');
+                }, 1500);
+                
+                // Adiciona ao histórico
+                addToHistory(roundedImc, classification, obesityDegree);
+            }
+            
+            function addToHistory(imc, classification, degree) {
+                const timestamp = new Date().toLocaleTimeString();
+                history.unshift({ imc, classification, degree, timestamp });
+                
+                // Limita o histórico aos 5 últimos cálculos
+                if (history.length > 5) {
+                    history.pop();
+                }
+                
+                // Salva no localStorage
+                localStorage.setItem('imcHistory', JSON.stringify(history));
+                
+                updateHistoryDisplay();
+            }
+            
+            function updateHistoryDisplay() {
+                if (history.length === 0) {
+                    historyList.innerHTML = '<div class="history-item"><span>Nenhum cálculo ainda</span></div>';
+                    return;
+                }
+                
+                historyList.innerHTML = '';
+                history.forEach(item => {
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'history-item';
+                    historyItem.innerHTML = `
+                        <span>${item.imc} - ${item.classification}</span>
+                        <span>${item.timestamp}</span>
+                    `;
+                    historyList.appendChild(historyItem);
+                });
+            }
+            
+            // Funcionalidade de compartilhamento
+            shareBtn.addEventListener('click', function() {
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'Calculadora de IMC',
+                        text: `Meu IMC é ${resultValue.textContent} - ${resultClassification.textContent}`,
+                        url: window.location.href
+                    })
+                    .catch(error => {
+                        console.log('Erro ao compartilhar:', error);
+                    });
+                } else {
+                    alert('Seu navegador não suporta a API de compartilhamento. Copie o link manualmente.');
+                }
+            });
+            
+            // Funcionalidade de salvamento
+            saveBtn.addEventListener('click', function() {
+                const resultText = `IMC: ${resultValue.textContent} - Classificação: ${resultClassification.textContent}`;
+                const blob = new Blob([resultText], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'meu-imc.txt';
+                a.click();
+                
+                URL.revokeObjectURL(url);
+            });
+            
+            // Inicializa a barra de progresso
+            progressFill.style.width = '0%';
+            
+            // Inicializa o placeholder da imagem
+            imagePlaceholder.style.display = 'flex';
+            resultImg.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
